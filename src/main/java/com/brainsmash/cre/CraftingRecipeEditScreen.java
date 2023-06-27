@@ -68,14 +68,19 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     private static final int SCROLLBAR_WIDTH = 12;
     private static final int SCROLLBAR_HEIGHT = 15;
     static final SimpleInventory INVENTORY = new SimpleInventory(45);
+    static final SimpleInventory RECIPE = new SimpleInventory(10);
     private static final Text DELETE_ITEM_SLOT_TEXT = Text.translatable("inventory.binSlot");
     private static final int WHITE = 16777215;
     private static int selectedTab;
     private float scrollPosition;
     private boolean scrolling;
     private TextFieldWidget searchBox;
+    private TextFieldWidget recipeBox;
     @Nullable
     private List<Slot> slots;
+
+    private List<Slot> recipeSlots;
+    private Slot outputSlot;
     @Nullable
     private Slot deleteItemSlot;
     private CraftingRecipeEditListener listener;
@@ -246,15 +251,19 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             super.init();
             this.client.keyboard.setRepeatEvents(true);
             TextRenderer var10003 = this.textRenderer;
-            int var10004 = this.x + 82;
-            int var10005 = this.y + 6;
             Objects.requireNonNull(this.textRenderer);
-            this.searchBox = new TextFieldWidget(var10003, var10004, var10005, 80, 9, Text.translatable("itemGroup.search"));
+            this.searchBox = new TextFieldWidget(var10003, x+82, y+6, 80, 9, Text.translatable("itemGroup.search"));
             this.searchBox.setMaxLength(50);
             this.searchBox.setDrawsBackground(false);
             this.searchBox.setVisible(false);
             this.searchBox.setEditableColor(16777215);
             this.addSelectableChild(this.searchBox);
+            this.recipeBox = new TextFieldWidget(var10003, x+101, y+132, 80, 9, Text.translatable("cre.recipe"));
+            this.recipeBox.setMaxLength(50);
+            this.recipeBox.setDrawsBackground(false);
+            this.recipeBox.setVisible(false);
+            this.recipeBox.setEditableColor(16777215);
+            this.addSelectableChild(this.recipeBox);
             int i = selectedTab;
             selectedTab = -1;
             this.setSelectedTab(ItemGroup.GROUPS[i]);
@@ -522,6 +531,15 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             (this.handler).slots.addAll(this.slots);
             this.slots = null;
         }
+
+        for(int x = 0; x < 3 ;x++) {
+            for (int y = 0; y < 3; y++) {
+                recipeSlots.add(new Slot(RECIPE, 3 * y + x, 45 + x * 18, 131 + y * 18));
+            }
+        }
+        handler.slots.addAll(recipeSlots);
+        outputSlot = new Slot(RECIPE,9,139,149);
+        handler.slots.add(outputSlot);
 
         if (this.searchBox != null) {
             if (group == ItemGroup.SEARCH) {
