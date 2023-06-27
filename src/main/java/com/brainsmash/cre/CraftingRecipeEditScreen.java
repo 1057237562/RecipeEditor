@@ -6,7 +6,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -19,7 +18,6 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
-import net.minecraft.client.gui.screen.ingame.CreativeInventoryListener;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.item.TooltipContext;
@@ -56,9 +54,11 @@ import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import static com.brainsmash.cre.Main.MODID;
+
 @Environment(EnvType.CLIENT)
 public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRecipeEditScreen.CraftingRecipeEditScreenHandler> {
-    private static final Identifier TEXTURE = new Identifier("textures/gui/container/creative_inventory/tabs.png");
+    private static final Identifier TEXTURE = new Identifier(MODID,"textures/gui/container/creative_inventory/tabs.png");
     private static final String TAB_TEXTURE_PREFIX = "textures/gui/container/creative_inventory/tab_";
     private static final String CUSTOM_CREATIVE_LOCK_KEY = "CustomCreativeLock";
     private static final int ROWS_COUNT = 5;
@@ -330,7 +330,8 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
                     return true;
                 } else {
-                    return this.searchBox.isFocused() && this.searchBox.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE ? true : super.keyPressed(keyCode, scanCode, modifiers);
+                    return this.searchBox.isFocused() && this.searchBox.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE || super.keyPressed(
+                            keyCode, scanCode, modifiers);
                 }
             }
         }
@@ -346,10 +347,8 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         this.searchResultTags.clear();
         String string = this.searchBox.getText();
         if (string.isEmpty()) {
-            Iterator var2 = Registry.ITEM.iterator();
 
-            while(var2.hasNext()) {
-                Item item = (Item)var2.next();
+            for (Item item : Registry.ITEM) {
                 item.appendStacks(ItemGroup.SEARCH, (this.handler).itemList);
             }
         } else {
@@ -380,8 +379,8 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             predicate = (idx) -> idx.getNamespace().contains(string) && idx.getPath().contains(string2);
         }
 
-        Stream var10000 = Registry.ITEM.streamTags().filter((tagKey) -> predicate.test(tagKey.id()));
-        Set var10001 = this.searchResultTags;
+        Stream<TagKey<Item>> var10000 = Registry.ITEM.streamTags().filter((tagKey) -> predicate.test(tagKey.id()));
+        Set<TagKey<Item>> var10001 = this.searchResultTags;
         Objects.requireNonNull(var10001);
         var10000.forEach(var10001::add);
     }
@@ -426,8 +425,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             ItemGroup[] var10 = ItemGroup.GROUPS;
             int var11 = var10.length;
 
-            for(int var12 = 0; var12 < var11; ++var12) {
-                ItemGroup itemGroup = var10[var12];
+            for (ItemGroup itemGroup : var10) {
                 if (this.isClickInTab(itemGroup, d, e)) {
                     this.setSelectedTab(itemGroup);
                     return true;
@@ -592,10 +590,8 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         this.renderBackground(matrices);
         super.render(matrices, mouseX, mouseY, delta);
         ItemGroup[] var5 = ItemGroup.GROUPS;
-        int var6 = var5.length;
 
-        for(int var7 = 0; var7 < var6; ++var7) {
-            ItemGroup itemGroup = var5[var7];
+        for (ItemGroup itemGroup : var5) {
             if (this.renderTabTooltipIfHovered(matrices, itemGroup, mouseX, mouseY)) {
                 break;
             }
@@ -618,12 +614,11 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             if (itemGroup == null && stack.isOf(Items.ENCHANTED_BOOK)) {
                 Map<Enchantment, Integer> map = EnchantmentHelper.get(stack);
                 if (map.size() == 1) {
-                    Enchantment enchantment = (Enchantment)map.keySet().iterator().next();
+                    Enchantment enchantment = map.keySet().iterator().next();
                     ItemGroup[] var11 = ItemGroup.GROUPS;
                     int var12 = var11.length;
 
-                    for(int var13 = 0; var13 < var12; ++var13) {
-                        ItemGroup itemGroup2 = var11[var13];
+                    for (ItemGroup itemGroup2 : var11) {
                         if (itemGroup2.containsEnchantments(enchantment.type)) {
                             itemGroup = itemGroup2;
                             break;
@@ -666,7 +661,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         }
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, new Identifier("textures/gui/container/creative_inventory/tab_" + itemGroup.getTexture()));
+        RenderSystem.setShaderTexture(0, new Identifier(MODID,"textures/gui/container/creative_inventory/tab_" + itemGroup.getTexture()));
         this.drawTexture(matrices, this.x, this.y, 0, 0, this.backgroundWidth, this.backgroundHeight);
         this.searchBox.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -807,7 +802,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         private final ScreenHandler parent;
 
         public CraftingRecipeEditScreenHandler(PlayerEntity player) {
-            super((ScreenHandlerType)null, 0);
+            super(null, 0);
             this.parent = player.playerScreenHandler;
             PlayerInventory playerInventory = player.getInventory();
 
@@ -856,8 +851,8 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
         public ItemStack transferSlot(PlayerEntity player, int index) {
             if (index >= this.slots.size() - 9 && index < this.slots.size()) {
-                Slot slot = (Slot)this.slots.get(index);
-                if (slot != null && slot.hasStack()) {
+                Slot slot = this.slots.get(index);
+                if (slot.hasStack()) {
                     slot.setStack(ItemStack.EMPTY);
                 }
             }
