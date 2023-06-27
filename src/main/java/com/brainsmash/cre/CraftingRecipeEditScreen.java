@@ -78,7 +78,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     private List<Slot> slots;
     @Nullable
     private Slot deleteItemSlot;
-    private CreativeInventoryListener listener;
+    private CraftingRecipeEditListener listener;
     private boolean ignoreTypedCharacter;
     private boolean lastClickOutsideBounds;
     private final Set<TagKey<Item>> searchResultTags = new HashSet();
@@ -259,7 +259,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             selectedTab = -1;
             this.setSelectedTab(ItemGroup.GROUPS[i]);
             this.client.player.playerScreenHandler.removeListener(this.listener);
-            this.listener = new CreativeInventoryListener(this.client);
+            this.listener = new CraftingRecipeEditListener(this.client);
             this.client.player.playerScreenHandler.addListener(this.listener);
         } else {
             this.client.setScreen(new InventoryScreen(this.client.player));
