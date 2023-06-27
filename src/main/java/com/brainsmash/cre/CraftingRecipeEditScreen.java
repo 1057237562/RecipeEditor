@@ -73,9 +73,6 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     private TextFieldWidget recipeBox;
     @Nullable
     private List<Slot> slots;
-
-    private List<Slot> recipeSlots = new ArrayList<>();
-    private Slot outputSlot;
     @Nullable
     private Slot deleteItemSlot;
     private CraftingRecipeEditListener listener;
@@ -527,15 +524,6 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             this.slots = null;
         }
 
-        for(int x = 0; x < 3 ;x++) {
-            for (int y = 0; y < 3; y++) {
-                recipeSlots.add(new Slot(RECIPE, 3 * y + x, 45 + x * 18, 131 + y * 18));
-            }
-        }
-        handler.slots.addAll(recipeSlots);
-        outputSlot = new Slot(RECIPE,9,139,149);
-        handler.slots.add(outputSlot);
-
         if (this.searchBox != null) {
             if (group == ItemGroup.SEARCH) {
                 this.searchBox.setVisible(true);
@@ -830,6 +818,13 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             for(i = 0; i < 9; ++i) {
                 this.addSlot(new Slot(playerInventory, i, 9 + i * 18, 112));
             }
+
+            for(int x = 0; x < 3 ;x++) {
+                for (int y = 0; y < 3; y++) {
+                    addSlot(new Slot(RECIPE, 3 * y + x, 45 + x * 18, 131 + y * 18));
+                }
+            }
+            addSlot(new Slot(RECIPE,9,139,149));
 
             this.scrollItems(0.0F);
         }
