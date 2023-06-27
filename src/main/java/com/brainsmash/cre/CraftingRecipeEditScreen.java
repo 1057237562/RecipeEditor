@@ -87,7 +87,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         super(new CraftingRecipeEditScreenHandler(player), player.getInventory(), ScreenTexts.EMPTY);
         player.currentScreenHandler = this.handler;
         this.passEvents = true;
-        this.backgroundHeight = 136;
+        this.backgroundHeight = 191;
         this.backgroundWidth = 195;
     }
 
@@ -511,7 +511,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                     }
                 }
 
-                Slot slot = new CreativeSlot((Slot)screenHandler.slots.get(j), j, o, k);
+                Slot slot = new CreativeSlot(screenHandler.slots.get(j), j, o, k);
                 (this.handler).slots.add(slot);
             }
 
@@ -836,7 +836,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                 for(int l = 0; l < 9; ++l) {
                     int m = l + (k + j) * 9;
                     if (m >= 0 && m < this.itemList.size()) {
-                        INVENTORY.setStack(l + k * 9, (ItemStack)this.itemList.get(m));
+                        INVENTORY.setStack(l + k * 9, this.itemList.get(m));
                     } else {
                         INVENTORY.setStack(l + k * 9, ItemStack.EMPTY);
                     }
