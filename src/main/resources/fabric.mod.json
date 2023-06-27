@@ -19,7 +19,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "com.brainsmash.cre.Main"
+    ],
+    "client": [
+      "com.brainsmash.cre.Client"
     ]
   },
   "mixins": [
