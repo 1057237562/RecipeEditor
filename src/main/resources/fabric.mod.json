@@ -1,12 +1,14 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "cre",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Crafting Recipe Editor",
+  "description": "This is a tool mod to create crafting recipe easily",
   "authors": [
-    "Me!"
+    "Λιβρα",
+    "OuOu2021",
+    "Duan_Yue"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",
@@ -14,7 +16,7 @@
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/cre/icon.png",
 
   "environment": "*",
   "entrypoints": {
@@ -26,7 +28,7 @@
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "cre.mixins.json"
   ],
 
   "depends": {
