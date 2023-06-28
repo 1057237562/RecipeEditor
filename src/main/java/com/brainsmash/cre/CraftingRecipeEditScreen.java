@@ -258,7 +258,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             this.recipeBox.setEditableColor(16777215);
             this.addSelectableChild(this.recipeBox);
 
-            this.addDrawableChild(new ButtonWidget(x + 132, y + 172, 30, 15, Text.translatable("crafting_recipe.done"), new ButtonWidget.PressAction() {
+            this.addDrawableChild(new ButtonWidget(x + 6, y + 147, 35, 20, Text.translatable("crafting_recipe.done"), new ButtonWidget.PressAction() {
                 @Override
                 public void onPress(ButtonWidget button) {
                     generateRecipeJson();
