@@ -14,6 +14,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -256,6 +257,14 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             this.recipeBox.setVisible(false);
             this.recipeBox.setEditableColor(16777215);
             this.addSelectableChild(this.recipeBox);
+
+            this.addDrawableChild(new ButtonWidget(x + 132, y + 172, 30, 15, Text.translatable("crafting_recipe.done"), new ButtonWidget.PressAction() {
+                @Override
+                public void onPress(ButtonWidget button) {
+                    generateRecipeJson();
+                    Main.LOGGER.info("generateRecipe button clicked");
+                }
+            }));
             int i = selectedTab;
             selectedTab = -1;
             this.setSelectedTab(ItemGroup.GROUPS[i]);
@@ -268,6 +277,10 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
     }
 
+    // TODO
+    private void generateRecipeJson(){
+
+    }
     public void resize(MinecraftClient client, int width, int height) {
         String string = this.searchBox.getText();
         this.init(client, width, height);
