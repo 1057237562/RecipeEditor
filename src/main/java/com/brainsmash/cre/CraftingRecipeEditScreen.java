@@ -2,14 +2,23 @@ package com.brainsmash.cre;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonWriter;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
+import net.minecraft.advancement.criterion.CriterionConditions;
+import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
@@ -25,6 +34,9 @@ import net.minecraft.client.search.SearchManager;
 import net.minecraft.client.search.SearchProvider;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.data.server.RecipeProvider;
+import net.minecraft.data.server.recipe.RecipeJsonProvider;
+import net.minecraft.data.server.recipe.ShapedRecipeJsonBuilder;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
@@ -35,15 +47,18 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.recipe.*;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.tag.ItemTags;
 import net.minecraft.tag.TagKey;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.JsonHelper;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.registry.Registry;
@@ -64,7 +79,9 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     private static final int SCROLLBAR_WIDTH = 12;
     private static final int SCROLLBAR_HEIGHT = 15;
     static final SimpleInventory INVENTORY = new SimpleInventory(45);
-    static final SimpleInventory RECIPE = new SimpleInventory(10);
+    static final SimpleInventory RECIPE = new SimpleInventory(9);
+    static final SimpleInventory OUTPUT = new SimpleInventory(1);
+    static final String savePath = "C:\\Users\\11131\\a.json";
     private static final Text DELETE_ITEM_SLOT_TEXT = Text.translatable("inventory.binSlot");
     private static final int WHITE = 16777215;
     private static int selectedTab;
@@ -100,6 +117,10 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     }
 
     protected void onMouseClick(@Nullable Slot slot, int slotId, int button, SlotActionType actionType) {
+        Main.LOGGER.info("Slot clicked: " + slotId);
+        if(slot!=null){
+            Main.LOGGER.info("Inventory selected: " + slot.inventory.toString());
+        }
         if (this.isCreativeInventorySlot(slot)) {
             this.searchBox.setCursorToEnd();
             this.searchBox.setSelectionEnd(0);
@@ -262,7 +283,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                 @Override
                 public void onPress(ButtonWidget button) {
                     generateRecipeJson();
-                    Main.LOGGER.info("generateRecipe button clicked");
+                    // Main.LOGGER.info("generateRecipe button clicked");
                 }
             }));
             int i = selectedTab;
@@ -277,9 +298,53 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
     }
 
-    // TODO
     private void generateRecipeJson(){
+        try{
+            Map<Text, Character> patternMap = new HashMap<>();
+            char patternIndex = 'A';
 
+            ShapedRecipeJsonBuilder builder = ShapedRecipeJsonBuilder.create(OUTPUT.getStack(0).getItem(), OUTPUT.getStack(0).getCount());
+            for(int i=0;i<3;i++){
+                StringBuilder pattern = new StringBuilder();
+                for(int j=0;j<3;j++){
+                    ItemStack nowItemStack = RECIPE.getStack(j+ i * 3);
+                    if(!nowItemStack.isEmpty()){
+                        Item nowItem = nowItemStack.getItem();
+                        if(!patternMap.containsKey(nowItem.getName())){
+                            builder.input(patternIndex, nowItem);
+                            patternMap.put(nowItem.getName(), patternIndex++);
+                        }
+                        pattern.append(patternMap.get(nowItem.getName()));
+                    }
+                    else pattern.append(' ');
+                }
+                // Main.LOGGER.info(pattern.toString());
+                builder.pattern(pattern.toString());
+            }
+            builder.criterion("has_planks", RecipeProvider.conditionsFromTag(ItemTags.PLANKS));
+            builder.offerTo(new Consumer<RecipeJsonProvider>(){
+                @Override
+                public void accept(RecipeJsonProvider recipeJsonProvider) {
+                    Gson builder = new GsonBuilder().setPrettyPrinting().create();
+                    String ans = builder.toJson(recipeJsonProvider.toJson());
+
+                    Main.LOGGER.info(ans);
+
+                    FileWriter writer;
+                    try {
+                        writer = new FileWriter(savePath);
+                        writer.write(ans);
+                        writer.flush();
+                        writer.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+        catch(Exception e){
+            Main.LOGGER.info(e.toString());
+        }
     }
     public void resize(MinecraftClient client, int width, int height) {
         String string = this.searchBox.getText();
@@ -837,7 +902,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                     addSlot(new Slot(RECIPE, 3 * y + x, 45 + x * 18, 131 + y * 18));
                 }
             }
-            addSlot(new Slot(RECIPE,9,139,149));
+            addSlot(new Slot(OUTPUT,0,139,149));
 
             this.scrollItems(0.0F);
         }
