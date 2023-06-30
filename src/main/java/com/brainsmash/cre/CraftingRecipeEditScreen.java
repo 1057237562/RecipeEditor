@@ -335,7 +335,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
                     FileWriter writer;
                     try {
-                        writer = new FileWriter(pathBox.getText());
+                        writer = new FileWriter("../resources/data/minecraft/recipes/"+pathBox.getText());
                         writer.write(ans);
                         writer.flush();
                         writer.close();
