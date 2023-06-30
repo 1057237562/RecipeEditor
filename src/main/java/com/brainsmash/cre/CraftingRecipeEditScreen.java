@@ -280,7 +280,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             this.pathBox.setEditableColor(16777215);
             this.addSelectableChild(this.pathBox);
             this.pathBox.setFocusUnlocked(true);
-            this.pathBox.setText("C:\\Users\\11131\\a.json");
+            this.pathBox.setText("item.json");
 
             this.addDrawableChild(new ButtonWidget(x + 6, y + 147, 35, 20, Text.translatable("crafting_recipe.done"), new ButtonWidget.PressAction() {
                 @Override
@@ -335,7 +335,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
                     FileWriter writer;
                     try {
-                        writer = new FileWriter("../resources/data/minecraft/recipes/"+pathBox.getText());
+                        writer = new FileWriter("../src/resources/data/minecraft/recipes/"+pathBox.getText());
                         writer.write(ans);
                         writer.flush();
                         writer.close();
