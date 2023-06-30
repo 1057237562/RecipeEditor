@@ -81,14 +81,13 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     static final SimpleInventory INVENTORY = new SimpleInventory(45);
     static final SimpleInventory RECIPE = new SimpleInventory(9);
     static final SimpleInventory OUTPUT = new SimpleInventory(1);
-    static final String savePath = "C:\\Users\\11131\\a.json";
     private static final Text DELETE_ITEM_SLOT_TEXT = Text.translatable("inventory.binSlot");
     private static final int WHITE = 16777215;
     private static int selectedTab;
     private float scrollPosition;
     private boolean scrolling;
     private TextFieldWidget searchBox;
-    private TextFieldWidget recipeBox;
+    private TextFieldWidget pathBox;
     @Nullable
     private List<Slot> slots;
     @Nullable
@@ -110,10 +109,12 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         super.handledScreenTick();
         if (!this.client.interactionManager.hasCreativeInventory()) {
             this.client.setScreen(new InventoryScreen(this.client.player));
-        } else if (this.searchBox != null) {
-            this.searchBox.tick();
+        } else {
+            this.pathBox.tick();
+            if (this.searchBox != null) {
+                this.searchBox.tick();
+            }
         }
-
     }
 
     protected void onMouseClick(@Nullable Slot slot, int slotId, int button, SlotActionType actionType) {
@@ -272,12 +273,14 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             this.searchBox.setVisible(false);
             this.searchBox.setEditableColor(16777215);
             this.addSelectableChild(this.searchBox);
-            this.recipeBox = new TextFieldWidget(var10003, x+101, y+132, 80, 9, Text.translatable("cre.recipe"));
-            this.recipeBox.setMaxLength(50);
-            this.recipeBox.setDrawsBackground(false);
-            this.recipeBox.setVisible(false);
-            this.recipeBox.setEditableColor(16777215);
-            this.addSelectableChild(this.recipeBox);
+            this.pathBox = new TextFieldWidget(var10003, x+101, y+132, 80, 9, Text.translatable("crafting_recipe.path"));
+            this.pathBox.setMaxLength(50);
+            this.pathBox.setDrawsBackground(false);
+            this.pathBox.setVisible(true);
+            this.pathBox.setEditableColor(16777215);
+            this.addSelectableChild(this.pathBox);
+            this.pathBox.setFocusUnlocked(true);
+            this.pathBox.setText("C:\\Users\\11131\\a.json");
 
             this.addDrawableChild(new ButtonWidget(x + 6, y + 147, 35, 20, Text.translatable("crafting_recipe.done"), new ButtonWidget.PressAction() {
                 @Override
@@ -332,7 +335,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
                     FileWriter writer;
                     try {
-                        writer = new FileWriter(savePath);
+                        writer = new FileWriter(pathBox.getText());
                         writer.write(ans);
                         writer.flush();
                         writer.close();
@@ -348,8 +351,10 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     }
     public void resize(MinecraftClient client, int width, int height) {
         String string = this.searchBox.getText();
+        String pathString = this.pathBox.getText();
         this.init(client, width, height);
         this.searchBox.setText(string);
+        this.pathBox.setText(pathString);
         if (!this.searchBox.getText().isEmpty()) {
             this.search();
         }
@@ -369,7 +374,11 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         if (this.ignoreTypedCharacter) {
             return false;
         } else if (selectedTab != ItemGroup.SEARCH.getIndex()) {
-            return false;
+            if(this.pathBox.isFocused()){
+                this.pathBox.charTyped(chr, modifiers);
+                return true;
+            }
+            else return false;
         } else {
             String string = this.searchBox.getText();
             if (this.searchBox.charTyped(chr, modifiers)) {
@@ -474,6 +483,12 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        Main.LOGGER.info("clicked: " + String.format("%.2f", mouseX) + " " + String.format("%.2f", mouseY) + " " + button);
+        Main.LOGGER.info("pathBox active:" + this.pathBox.isActive());
+        Main.LOGGER.info("pathBox visible:" + this.pathBox.isVisible());
+        Main.LOGGER.info("pathBox focused:" + this.pathBox.isFocused());
+        Main.LOGGER.info("Text: " + this.pathBox.getText());
+
         if (button == 0) {
             double d = mouseX - (double)this.x;
             double e = mouseY - (double)this.y;
@@ -743,6 +758,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         RenderSystem.setShaderTexture(0, new Identifier(MODID,"textures/gui/container/creative_inventory/tab_" + itemGroup.getTexture()));
         this.drawTexture(matrices, this.x, this.y, 0, 0, this.backgroundWidth, this.backgroundHeight);
         this.searchBox.render(matrices, mouseX, mouseY, delta);
+        this.pathBox.render(matrices, mouseX, mouseY, delta);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int i = this.x + 175;
         j = this.y + 18;
