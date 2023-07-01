@@ -4,21 +4,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonWriter;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
-
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.minecraft.advancement.criterion.CriterionConditions;
-import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
+import net.fabricmc.fabric.impl.client.item.group.CreativeGuiExtensions;
+import net.fabricmc.fabric.impl.client.item.group.FabricCreativeGuiComponents;
+import net.fabricmc.fabric.mixin.item.group.client.CreativeInventoryScreenMixin;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
@@ -47,9 +39,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.recipe.*;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -58,17 +48,23 @@ import net.minecraft.tag.TagKey;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
 import static com.brainsmash.cre.Main.MODID;
 
 @Environment(EnvType.CLIENT)
-public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRecipeEditScreen.CraftingRecipeEditScreenHandler> {
+public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRecipeEditScreen.CraftingRecipeEditScreenHandler> implements CreativeGuiExtensions {
     private static final Identifier TEXTURE = new Identifier(MODID,"textures/gui/container/creative_inventory/tabs.png");
     private static final String TAB_TEXTURE_PREFIX = "textures/gui/container/creative_inventory/tab_";
     private static final String CUSTOM_CREATIVE_LOCK_KEY = "CustomCreativeLock";
@@ -298,7 +294,11 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         } else {
             this.client.setScreen(new InventoryScreen(this.client.player));
         }
-
+        fabric_updateSelection();
+        int xpos = x + 116;
+        int ypos = y - 10;
+        addDrawableChild(new FabricCreativeGuiComponents.ItemGroupButtonWidget(xpos + 11, ypos, FabricCreativeGuiComponents.Type.NEXT, this));
+        addDrawableChild(new FabricCreativeGuiComponents.ItemGroupButtonWidget(xpos, ypos, FabricCreativeGuiComponents.Type.PREVIOUS, this));
     }
 
     private void generateRecipeJson(){
@@ -535,6 +535,9 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     }
 
     private void setSelectedTab(ItemGroup group) {
+        if (!fabric_isGroupVisible(group)) {
+            return;
+        }
         int i = selectedTab;
         selectedTab = group.getIndex();
         this.cursorDragSlots.clear();
@@ -777,6 +780,9 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     }
 
     protected boolean isClickInTab(ItemGroup group, double mouseX, double mouseY) {
+        if (!fabric_isGroupVisible(group)) {
+            return false;
+        }
         int i = group.getColumn();
         int j = 28 * i;
         int k = 0;
@@ -796,6 +802,9 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     }
 
     protected boolean renderTabTooltipIfHovered(MatrixStack matrices, ItemGroup group, int mouseX, int mouseY) {
+        if (!fabric_isGroupVisible(group)) {
+            return false;
+        }
         int i = group.getColumn();
         int j = 28 * i;
         int k = 0;
@@ -820,6 +829,9 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     }
 
     protected void renderTabIcon(MatrixStack matrices, ItemGroup group) {
+        if (!fabric_isGroupVisible(group)) {
+            return;
+        }
         boolean bl = group.getIndex() == selectedTab;
         boolean bl2 = group.isTopRow();
         int i = group.getColumn();
@@ -889,6 +901,89 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
     static {
         selectedTab = ItemGroup.BUILDING_BLOCKS.getIndex();
+    }
+
+
+    private static int fabric_currentPage = 0;
+
+    private int fabric_getPageOffset(int page) {
+        switch (page) {
+            case 0:
+                return 0;
+            case 1:
+                return 12;
+            default:
+                return 12 + ((12 - FabricCreativeGuiComponents.COMMON_GROUPS.size()) * (page - 1));
+        }
+    }
+
+    private int fabric_getOffsetPage(int offset) {
+        if (offset < 12) {
+            return 0;
+        } else {
+            return 1 + ((offset - 12) / (12 - FabricCreativeGuiComponents.COMMON_GROUPS.size()));
+        }
+    }
+
+    private boolean fabric_isGroupVisible(ItemGroup itemGroup) {
+        if (FabricCreativeGuiComponents.COMMON_GROUPS.contains(itemGroup)) {
+            return true;
+        }
+
+        return fabric_currentPage == fabric_getOffsetPage(itemGroup.getIndex());
+    }
+
+    @Override
+    public int fabric_currentPage() {
+        return fabric_currentPage;
+    }
+
+    @Override
+    public void fabric_nextPage() {
+        if (fabric_getPageOffset(fabric_currentPage + 1) >= ItemGroup.GROUPS.length) {
+            return;
+        }
+
+        fabric_currentPage++;
+        fabric_updateSelection();
+    }
+
+    @Override
+    public void fabric_previousPage() {
+        if (fabric_currentPage == 0) {
+            return;
+        }
+
+        fabric_currentPage--;
+        fabric_updateSelection();
+    }
+
+    @Override
+    public boolean fabric_isButtonVisible(FabricCreativeGuiComponents.Type type) {
+        return ItemGroup.GROUPS.length > 12;
+    }
+
+    @Override
+    public boolean fabric_isButtonEnabled(FabricCreativeGuiComponents.Type type) {
+        if (type == FabricCreativeGuiComponents.Type.NEXT) {
+            return !(fabric_getPageOffset(fabric_currentPage + 1) >= ItemGroup.GROUPS.length);
+        }
+
+        if (type == FabricCreativeGuiComponents.Type.PREVIOUS) {
+            return fabric_currentPage != 0;
+        }
+
+        return false;
+    }
+
+    private void fabric_updateSelection() {
+        int minPos = fabric_getPageOffset(fabric_currentPage);
+        int maxPos = fabric_getPageOffset(fabric_currentPage + 1) - 1;
+        int curPos = getSelectedTab();
+
+        if (curPos < minPos || curPos > maxPos) {
+            setSelectedTab(ItemGroup.GROUPS[fabric_getPageOffset(fabric_currentPage)]);
+        }
     }
 
     @Environment(EnvType.CLIENT)
