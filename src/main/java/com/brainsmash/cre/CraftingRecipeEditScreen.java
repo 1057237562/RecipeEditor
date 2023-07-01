@@ -384,12 +384,12 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             else return false;
         } else { // in search tab
             if(this.pathBox.isFocused()){
-                Main.LOGGER.info("charTyped: "+ chr + " " + " in pathBox");
+                // Main.LOGGER.info("charTyped: "+ chr + " " + " in pathBox");
                 this.pathBox.charTyped(chr, modifiers);
                 return true;
             }
             else {
-                Main.LOGGER.info("charTyped: "+ chr + " " + " in searchBox");
+                // Main.LOGGER.info("charTyped: "+ chr + " " + " in searchBox");
                 String string = this.searchBox.getText();
                 if (this.searchBox.charTyped(chr, modifiers)) {
                     if (!Objects.equals(string, this.searchBox.getText())) {
@@ -412,7 +412,15 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                 this.setSelectedTab(ItemGroup.SEARCH);
                 return true;
             } else {
-                return super.keyPressed(keyCode, scanCode, modifiers);
+                if(this.pathBox.isFocused()){
+                    if (this.pathBox.keyPressed(keyCode, scanCode, modifiers)) {
+                        return true;
+                    } else {
+                        return this.pathBox.isFocused() && this.pathBox.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE || super.keyPressed(
+                                keyCode, scanCode, modifiers);
+                    }
+                }
+                else return super.keyPressed(keyCode, scanCode, modifiers);
             }
         } else {
             boolean bl = !this.isCreativeInventorySlot(this.focusedSlot) || this.focusedSlot.hasStack();
@@ -509,8 +517,8 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         Main.LOGGER.info("clicked: " + String.format("%.2f", mouseX) + " " + String.format("%.2f", mouseY) + " " + button);
-        Main.LOGGER.info("pathBox focused:" + this.pathBox.isFocused());
-        Main.LOGGER.info("searchBox focused:" + this.searchBox.isFocused());
+        // Main.LOGGER.info("pathBox focused:" + this.pathBox.isFocused());
+        // Main.LOGGER.info("searchBox focused:" + this.searchBox.isFocused());
 
         if (button == 0) {
             double d = mouseX - (double)this.x;
@@ -568,7 +576,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         if (!fabric_isGroupVisible(group)) {
             return;
         }
-        Main.LOGGER.info("SelectedTab "+ group.getName());
+        // Main.LOGGER.info("SelectedTab "+ group.getName());
         int i = selectedTab;
         selectedTab = group.getIndex();
         this.cursorDragSlots.clear();
