@@ -56,6 +56,7 @@ import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -327,23 +328,22 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                 builder.pattern(pattern.toString());
             }
             builder.criterion("has_planks", RecipeProvider.conditionsFromTag(ItemTags.PLANKS));
-            builder.offerTo(new Consumer<RecipeJsonProvider>(){
-                @Override
-                public void accept(RecipeJsonProvider recipeJsonProvider) {
-                    Gson builder = new GsonBuilder().setPrettyPrinting().create();
-                    String ans = builder.toJson(recipeJsonProvider.toJson());
+            builder.offerTo(recipeJsonProvider -> {
+                Gson builder1 = new GsonBuilder().setPrettyPrinting().create();
+                String ans = builder1.toJson(recipeJsonProvider.toJson());
 
-                    Main.LOGGER.info(ans);
-
-                    FileWriter writer;
-                    try {
-                        writer = new FileWriter("../src/resources/data/minecraft/recipes/"+pathBox.getText());
-                        writer.write(ans);
-                        writer.flush();
-                        writer.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                Main.LOGGER.info(ans);
+                File file = new File("../src/main/resources/data/minecraft/recipes/");
+                System.out.println(file.getAbsolutePath());
+                file.mkdirs();
+                FileWriter writer;
+                try {
+                    writer = new FileWriter("../src/main/resources/data/minecraft/recipes/" + pathBox.getText());
+                    writer.write(ans);
+                    writer.flush();
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             });
         }
