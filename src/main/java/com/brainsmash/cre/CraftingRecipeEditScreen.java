@@ -35,6 +35,8 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.CraftingInventory;
+import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.Item;
@@ -43,6 +45,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenTexts;
+import net.minecraft.screen.slot.CraftingResultSlot;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.tag.ItemTags;
@@ -78,8 +81,6 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     private static final int SCROLLBAR_WIDTH = 12;
     private static final int SCROLLBAR_HEIGHT = 15;
     static final SimpleInventory INVENTORY = new SimpleInventory(45);
-    static final SimpleInventory RECIPE = new SimpleInventory(9);
-    static final SimpleInventory OUTPUT = new SimpleInventory(1);
     private static final Text DELETE_ITEM_SLOT_TEXT = Text.translatable("inventory.binSlot");
     private static final int WHITE = 16777215;
     private static int selectedTab;
@@ -122,6 +123,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         Main.LOGGER.info("Slot clicked: " + slotId);
         if(slot!=null){
             Main.LOGGER.info("Inventory selected: " + slot.inventory.toString());
+            Main.LOGGER.info("Stack:" + slot.getStack().toString());
         }
         if (this.isCreativeInventorySlot(slot)) {
             this.searchBox.setCursorToEnd();
@@ -232,7 +234,11 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                     }
                 } else if (this.handler != null) {
                     itemStack = slot == null ? ItemStack.EMPTY : (this.handler).getSlot(slot.id).getStack();
+                    Main.LOGGER.info(itemStack.toString());
                     (this.handler).onSlotClick(slot == null ? slotId : slot.id, button, actionType, this.client.player);
+
+                    // TODO: check out what the hell is this below
+                    /*
                     if (ScreenHandler.unpackQuickCraftStage(button) == 2) {
                         for(int j = 0; j < 9; ++j) {
                             this.client.interactionManager.clickCreativeStack((this.handler).getSlot(45 + j).getStack(), 36 + j);
@@ -252,6 +258,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
                         this.client.player.playerScreenHandler.sendContentUpdates();
                     }
+                    */
                 }
             }
         }
@@ -310,11 +317,11 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             Map<Text, Character> patternMap = new HashMap<>();
             char patternIndex = 'A';
 
-            ShapedRecipeJsonBuilder builder = ShapedRecipeJsonBuilder.create(OUTPUT.getStack(0).getItem(), OUTPUT.getStack(0).getCount());
+            ShapedRecipeJsonBuilder builder = ShapedRecipeJsonBuilder.create(this.handler.OUTPUT.getStack(0).getItem(), this.handler.OUTPUT.getStack(0).getCount());
             for(int i=0;i<3;i++){
                 StringBuilder pattern = new StringBuilder();
                 for(int j=0;j<3;j++){
-                    ItemStack nowItemStack = RECIPE.getStack(j+ i * 3);
+                    ItemStack nowItemStack = this.handler.RECIPE.getStack(j+ i * 3);
                     if(!nowItemStack.isEmpty()){
                         Item nowItem = nowItemStack.getItem();
                         if(!patternMap.containsKey(nowItem.getName())){
@@ -1028,6 +1035,8 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     public static class CraftingRecipeEditScreenHandler extends ScreenHandler {
         public final DefaultedList<ItemStack> itemList = DefaultedList.of();
         private final ScreenHandler parent;
+        private final SimpleInventory RECIPE = new SimpleInventory(9);
+        private final SimpleInventory OUTPUT = new SimpleInventory(1);
 
         public CraftingRecipeEditScreenHandler(PlayerEntity player) {
             super(null, 0);
@@ -1045,7 +1054,6 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             for(i = 0; i < 9; ++i) {
                 this.addSlot(new Slot(playerInventory, i, 9 + i * 18, 112));
             }
-
             for(int x = 0; x < 3 ;x++) {
                 for (int y = 0; y < 3; y++) {
                     addSlot(new Slot(RECIPE, 3 * y + x, 45 + x * 18, 131 + y * 18));
