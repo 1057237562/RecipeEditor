@@ -109,8 +109,10 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         if (!this.client.interactionManager.hasCreativeInventory()) {
             this.client.setScreen(new InventoryScreen(this.client.player));
         } else {
-            this.pathBox.tick();
-            if (this.searchBox != null) {
+            if(this.pathBox.isFocused()){
+                this.pathBox.tick();
+            }
+            if(this.searchBox != null && this.searchBox.isFocused()) {
                 this.searchBox.tick();
             }
         }
@@ -278,7 +280,6 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
             this.pathBox.setVisible(true);
             this.pathBox.setEditableColor(16777215);
             this.addSelectableChild(this.pathBox);
-            this.pathBox.setFocusUnlocked(true);
             this.pathBox.setText("item.json");
 
             this.addDrawableChild(new ButtonWidget(x + 6, y + 147, 35, 20, Text.translatable("crafting_recipe.done"), new ButtonWidget.PressAction() {
@@ -381,16 +382,24 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                 return true;
             }
             else return false;
-        } else {
-            String string = this.searchBox.getText();
-            if (this.searchBox.charTyped(chr, modifiers)) {
-                if (!Objects.equals(string, this.searchBox.getText())) {
-                    this.search();
-                }
-
+        } else { // in search tab
+            if(this.pathBox.isFocused()){
+                Main.LOGGER.info("charTyped: "+ chr + " " + " in pathBox");
+                this.pathBox.charTyped(chr, modifiers);
                 return true;
-            } else {
-                return false;
+            }
+            else {
+                Main.LOGGER.info("charTyped: "+ chr + " " + " in searchBox");
+                String string = this.searchBox.getText();
+                if (this.searchBox.charTyped(chr, modifiers)) {
+                    if (!Objects.equals(string, this.searchBox.getText())) {
+                        this.search();
+                    }
+
+                    return true;
+                } else {
+                    return false;
+                }
             }
         }
     }
@@ -412,16 +421,30 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                 this.ignoreTypedCharacter = true;
                 return true;
             } else {
-                String string = this.searchBox.getText();
-                if (this.searchBox.keyPressed(keyCode, scanCode, modifiers)) {
-                    if (!Objects.equals(string, this.searchBox.getText())) {
-                        this.search();
-                    }
+                if(this.searchBox.isFocused()){
+                    String string = this.searchBox.getText();
+                    if (this.searchBox.keyPressed(keyCode, scanCode, modifiers)) {
+                        if (!Objects.equals(string, this.searchBox.getText())) {
+                            this.search();
+                        }
 
-                    return true;
-                } else {
-                    return this.searchBox.isFocused() && this.searchBox.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE || super.keyPressed(
-                            keyCode, scanCode, modifiers);
+                        return true;
+                    } else {
+                        return this.searchBox.isFocused() && this.searchBox.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE || super.keyPressed(
+                                keyCode, scanCode, modifiers);
+                    }
+                }
+                else if(this.pathBox.isFocused()){
+                    if (this.pathBox.keyPressed(keyCode, scanCode, modifiers)) {
+                        return true;
+                    } else {
+                        return this.pathBox.isFocused() && this.pathBox.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE || super.keyPressed(
+                                keyCode, scanCode, modifiers);
+                    }
+                }
+                else {
+                    // Main.LOGGER.error("Failed to handle: key pressed");
+                    return keyCode != GLFW.GLFW_KEY_ESCAPE || super.keyPressed(keyCode, scanCode, modifiers);
                 }
             }
         }
@@ -486,10 +509,8 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         Main.LOGGER.info("clicked: " + String.format("%.2f", mouseX) + " " + String.format("%.2f", mouseY) + " " + button);
-        Main.LOGGER.info("pathBox active:" + this.pathBox.isActive());
-        Main.LOGGER.info("pathBox visible:" + this.pathBox.isVisible());
         Main.LOGGER.info("pathBox focused:" + this.pathBox.isFocused());
-        Main.LOGGER.info("Text: " + this.pathBox.getText());
+        Main.LOGGER.info("searchBox focused:" + this.searchBox.isFocused());
 
         if (button == 0) {
             double d = mouseX - (double)this.x;
@@ -509,7 +530,14 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                 return true;
             }
         }
-
+        if(this.pathBox.mouseClicked(mouseX, mouseY, button)){
+            this.searchBox.setTextFieldFocused(false);
+            return true;
+        }
+        else if(this.searchBox.mouseClicked(mouseX, mouseY, button)){
+            this.pathBox.setTextFieldFocused(false);
+            return true;
+        }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -540,6 +568,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         if (!fabric_isGroupVisible(group)) {
             return;
         }
+        Main.LOGGER.info("SelectedTab "+ group.getName());
         int i = selectedTab;
         selectedTab = group.getIndex();
         this.cursorDragSlots.clear();
@@ -625,7 +654,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         if (this.searchBox != null) {
             if (group == ItemGroup.SEARCH) {
                 this.searchBox.setVisible(true);
-                this.searchBox.setFocusUnlocked(false);
+                // this.searchBox.setFocusUnlocked(false);
                 this.searchBox.setTextFieldFocused(true);
                 if (i != group.getIndex()) {
                     this.searchBox.setText("");
@@ -634,7 +663,7 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                 this.search();
             } else {
                 this.searchBox.setVisible(false);
-                this.searchBox.setFocusUnlocked(true);
+                // this.searchBox.setFocusUnlocked(true);
                 this.searchBox.setTextFieldFocused(false);
                 this.searchBox.setText("");
             }
