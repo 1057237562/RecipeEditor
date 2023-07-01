@@ -1,5 +1,7 @@
 package com.brainsmash.cre;
 
+import com.brainsmash.cre.gui.CREGuiComponents;
+import com.brainsmash.cre.interfaces.CREGuiExtensions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -64,7 +66,7 @@ import java.util.stream.Stream;
 import static com.brainsmash.cre.Main.MODID;
 
 @Environment(EnvType.CLIENT)
-public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRecipeEditScreen.CraftingRecipeEditScreenHandler> implements CreativeGuiExtensions {
+public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRecipeEditScreen.CraftingRecipeEditScreenHandler> implements CREGuiExtensions {
     private static final Identifier TEXTURE = new Identifier(MODID,"textures/gui/container/creative_inventory/tabs.png");
     private static final String TAB_TEXTURE_PREFIX = "textures/gui/container/creative_inventory/tab_";
     private static final String CUSTOM_CREATIVE_LOCK_KEY = "CustomCreativeLock";
@@ -297,8 +299,8 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         fabric_updateSelection();
         int xpos = x + 116;
         int ypos = y - 10;
-        addDrawableChild(new FabricCreativeGuiComponents.ItemGroupButtonWidget(xpos + 11, ypos, FabricCreativeGuiComponents.Type.NEXT, this));
-        addDrawableChild(new FabricCreativeGuiComponents.ItemGroupButtonWidget(xpos, ypos, FabricCreativeGuiComponents.Type.PREVIOUS, this));
+        addDrawableChild(new CREGuiComponents.ItemGroupButtonWidget(xpos + 11, ypos, CREGuiComponents.Type.NEXT, this));
+        addDrawableChild(new CREGuiComponents.ItemGroupButtonWidget(xpos, ypos, CREGuiComponents.Type.PREVIOUS, this));
     }
 
     private void generateRecipeJson(){
@@ -948,7 +950,6 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
         fabric_updateSelection();
     }
 
-    @Override
     public void fabric_previousPage() {
         if (fabric_currentPage == 0) {
             return;
@@ -959,17 +960,17 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
     }
 
     @Override
-    public boolean fabric_isButtonVisible(FabricCreativeGuiComponents.Type type) {
+    public boolean fabric_isButtonVisible(CREGuiComponents.Type type) {
         return ItemGroup.GROUPS.length > 12;
     }
 
     @Override
-    public boolean fabric_isButtonEnabled(FabricCreativeGuiComponents.Type type) {
-        if (type == FabricCreativeGuiComponents.Type.NEXT) {
+    public boolean fabric_isButtonEnabled(CREGuiComponents.Type type) {
+        if (type == CREGuiComponents.Type.NEXT) {
             return !(fabric_getPageOffset(fabric_currentPage + 1) >= ItemGroup.GROUPS.length);
         }
 
-        if (type == FabricCreativeGuiComponents.Type.PREVIOUS) {
+        if (type == CREGuiComponents.Type.PREVIOUS) {
             return fabric_currentPage != 0;
         }
 
