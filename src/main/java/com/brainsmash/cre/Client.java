@@ -20,7 +20,9 @@ public class Client implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if(openKey.isPressed()){
                 ClientPlayerEntity clientPlayerEntity = MinecraftClient.getInstance().player;
-                client.setScreen(new CraftingRecipeEditScreen(clientPlayerEntity));
+                if(clientPlayerEntity.isCreative()){
+                    client.setScreen(new CraftingRecipeEditScreen(clientPlayerEntity));
+                }
             }
         });
     }
