@@ -1,8 +1,14 @@
-# Fabric Example Mod
+# Crafting Recipe Editor
 
 ## Setup
 
-For setup instructions please see the [fabric wiki page](https://fabricmc.net/wiki/tutorial:setup) that relates to the IDE that you are using.
+Put this mod in ur fabric mod project's /run dir.
+
+## Usage
+
+Press hotkey(Default 'M') to call for this mod gui in creative mode.
+
+This mod will compile ur crafting recipe into ur src/main/resources/data/ automatically after u press the done btn.
 
 ## License
 
