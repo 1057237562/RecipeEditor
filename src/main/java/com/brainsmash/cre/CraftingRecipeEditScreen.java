@@ -413,22 +413,19 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         this.ignoreTypedCharacter = false;
+        if(this.pathBox.isFocused()){
+            if (this.pathBox.keyPressed(keyCode, scanCode, modifiers)) {
+                return true;
+            } else {
+                return this.pathBox.isFocused() && this.pathBox.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE || super.keyPressed(keyCode, scanCode, modifiers);
+            }
+        }
         if (selectedTab != ItemGroup.SEARCH.getIndex()) {
             if (this.client.options.chatKey.matchesKey(keyCode, scanCode)) {
                 this.ignoreTypedCharacter = true;
                 this.setSelectedTab(ItemGroup.SEARCH);
                 return true;
-            } else {
-                if(this.pathBox.isFocused()){
-                    if (this.pathBox.keyPressed(keyCode, scanCode, modifiers)) {
-                        return true;
-                    } else {
-                        return this.pathBox.isFocused() && this.pathBox.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE || super.keyPressed(
-                                keyCode, scanCode, modifiers);
-                    }
-                }
-                else return super.keyPressed(keyCode, scanCode, modifiers);
-            }
+            } else return super.keyPressed(keyCode, scanCode, modifiers);
         } else {
             boolean bl = !this.isCreativeInventorySlot(this.focusedSlot) || this.focusedSlot.hasStack();
             boolean bl2 = InputUtil.fromKeyCode(keyCode, scanCode).toInt().isPresent();
@@ -446,14 +443,6 @@ public class CraftingRecipeEditScreen extends AbstractInventoryScreen<CraftingRe
                         return true;
                     } else {
                         return this.searchBox.isFocused() && this.searchBox.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE || super.keyPressed(
-                                keyCode, scanCode, modifiers);
-                    }
-                }
-                else if(this.pathBox.isFocused()){
-                    if (this.pathBox.keyPressed(keyCode, scanCode, modifiers)) {
-                        return true;
-                    } else {
-                        return this.pathBox.isFocused() && this.pathBox.isVisible() && keyCode != GLFW.GLFW_KEY_ESCAPE || super.keyPressed(
                                 keyCode, scanCode, modifiers);
                     }
                 }
